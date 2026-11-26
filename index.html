@@ -305,6 +305,91 @@ if(!configured){
  const {data:{session}}=await supabase.auth.getSession();
  if(session){user=session.user;showApp();}
 }
+ 
+const loginTab = document.getElementById("loginTab");
+const signupTab = document.getElementById("signupTab");
+const authForm = document.getElementById("authForm");
+const nameWrap = document.getElementById("nameWrap");
+const authSubmit = document.getElementById("authSubmit");
+const authMessage = document.getElementById("authMessage");
+
+let authMode = "login";
+
+function setAuthMode(mode) {
+  authMode = mode;
+
+  nameWrap.classList.toggle("hidden", mode !== "signup");
+
+  authSubmit.textContent =
+    mode === "signup" ? "إنشاء حساب" : "دخول إلى حسابي";
+
+  loginTab.className = mode === "login"
+    ? "btn flex-1"
+    : "flex-1 rounded-xl bg-slate-800";
+
+  signupTab.className = mode === "signup"
+    ? "btn flex-1"
+    : "flex-1 rounded-xl bg-slate-800";
+
+  authMessage.textContent = "";
+}
+
+loginTab.type = "button";
+signupTab.type = "button";
+
+loginTab.addEventListener("click", () => setAuthMode("login"));
+signupTab.addEventListener("click", () => setAuthMode("signup"));
+
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const name = document.getElementById("name").value.trim();
+
+  if (!email || password.length < 8) {
+    authMessage.textContent = "أدخل البريد وكلمة مرور من 8 أحرف على الأقل.";
+    return;
+  }
+
+  authSubmit.disabled = true;
+  authMessage.textContent = "جارٍ تنفيذ الطلب...";
+
+  try {
+    if (authMode === "signup") {
+      const { data, error } = await db.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+          emailRedirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+
+      authMessage.textContent = data.session
+        ? "تم إنشاء الحساب بنجاح!"
+        : "تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيده.";
+    } else {
+      const { data, error } = await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      user = data.user;
+      show();
+      authMessage.textContent = "تم تسجيل الدخول بنجاح.";
+    }
+  } catch (error) {
+    authMessage.textContent = error.message || "حدث خطأ أثناء العملية.";
+  } finally {
+    authSubmit.disabled = false;
+  }
+});
+
 </script>
 </body>
 </html>
