@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DreamMotion AI | AI Video Studio</title>
+<meta name="theme-color" content="#090b14">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box}
+body{margin:0;background:#090b14;color:#f8fafc;font-family:Cairo,sans-serif}
+.glass{background:#141827;border:1px solid #293047;border-radius:18px}
+.input{width:100%;background:#0b1020;border:1px solid #343c55;border-radius:11px;padding:13px;color:white;outline:none}
+.input:focus{border-color:#9b75ff}
+.btn{background:linear-gradient(110deg,#7045e8,#ae5ce9);padding:12px 19px;border-radius:11px;font-weight:700;color:white}
+.btn:disabled{opacity:.5}
+.muted{color:#929bb2}
+.navitem{padding:12px;border-radius:10px;color:#b5bed2;text-align:right;width:100%}
+.navitem.active,.navitem:hover{background:#292044;color:white}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="auth" class="min-h-screen flex items-center justify-center p-4">
+ <div class="glass w-full max-w-md p-7">
+  <div class="text-center mb-7">
+   <div class="text-4xl mb-2">✦</div>
+   <h1 class="text-3xl font-extrabold">DreamMotion <span class="text-violet-400">AI</span></h1>
+   <p class="muted text-sm mt-2" id="authSubtitle">حوّل خيالك إلى فيديو مذهل</p>
+  </div>
+  <div class="flex gap-2 mb-5">
+   <button id="loginTab" class="btn flex-1">تسجيل الدخول</button>
+   <button id="signupTab" class="flex-1 rounded-xl bg-slate-800">حساب جديد</button>
+  </div>
+  <form id="authForm" class="space-y-4">
+   <div id="nameWrap" class="hidden">
+    <label class="text-sm block mb-2">الاسم</label>
+    <input id="name" class="input" placeholder="اسمك">
+   </div>
+   <div>
+    <label class="text-sm block mb-2">البريد الإلكتروني</label>
+    <input id="email" type="email" required class="input" placeholder="name@example.com">
+   </div>
+   <div>
+    <label class="text-sm block mb-2">كلمة المرور</label>
+    <input id="password" type="password" minlength="8" required class="input" placeholder="8 أحرف على الأقل">
+   </div>
+   <button class="btn w-full" id="authSubmit">دخول إلى حسابي</button>
+  </form>
+  <p id="authMessage" class="text-sm text-center mt-4 muted"></p>
+  <p class="text-xs text-center muted mt-5">بتسجيلك، أنت توافق على شروط الاستخدام وسياسة الخصوصية.</p>
+ </div>
+</div>
+
+<div id="app" class="hidden min-h-screen">
+ <header class="border-b border-slate-800 px-4 md:px-8 py-4 flex justify-between items-center">
+  <div class="font-extrabold text-xl">✦ DreamMotion <span class="text-violet-400">AI</span></div>
+  <div class="flex gap-2 items-center">
+   <button id="langBtn" class="text-sm px-3 py-2 rounded-lg bg-slate-800">English</button>
+   <button id="logout" class="text-sm px-3 py-2 rounded-lg bg-slate-800">خروج</button>
+  </div>
+ </header>
+ <div class="max-w-7xl mx-auto p-4 md:p-8 grid md:grid-cols-[220px_1fr] gap-6">
+  <aside class="glass p-3 h-fit">
+   <button class="navitem active" data-page="create">✦ إنشاء فيديو</button>
+   <button class="navitem" data-page="library">▣ مكتبتي</button>
+   <div class="border-t border-slate-700 my-3"></div>
+   <div class="p-3">
+    <p class="text-xs muted">رصيدك الحالي</p>
+    <div class="text-2xl font-bold mt-1"><span id="credits">30</span> <span class="text-violet-400 text-sm">رصيد</span></div>
+    <p class="text-xs muted mt-2">رصيد تجريبي مبدئي</p>
+   </div>
+  </aside>
+
+  <main>
+   <section id="createPage">
+    <div class="mb-6">
+     <p class="text-violet-300 text-sm">AI VIDEO GENERATOR</p>
+     <h1 class="text-3xl md:text-4xl font-extrabold mt-2">اصنع فيديوك القادم ✨</h1>
+     <p class="muted mt-2">حوّل أفكارك إلى مشاهد إبداعية.</p>
+    </div>
+    <div class="glass p-5 md:p-7">
+     <form id="projectForm">
+      <label class="block mb-2 font-bold">وصف الفيديو</label>
+      <textarea id="prompt" class="input h-36 resize-y" required minlength="10" maxlength="3000" placeholder="مثال: بذرة فراولة تنمو بسرعة وتتحول إلى نبتة مثمرة بتصوير ماكرو واقعي وأصوات ASMR..."></textarea>
+      <div class="flex justify-between text-xs muted mt-2"><span>اكتب وصفًا تفصيليًا للحصول على نتيجة أفضل</span><span id="counter">0 / 3000</span></div>
+
+      <label class="block mt-6 mb-2 font-bold">محرك الفيديو</label>
+      <select id="model" class="input">
+       <option value="kling">Kling AI</option>
+       <option value="veo">Google Veo</option>
+       <option value="sora">Sora</option>
+       <option value="runway">Runway</option>
+      </select>
+
+      <div class="grid sm:grid-cols-2 gap-4 mt-4">
+       <div>
+        <label class="block mb-2 text-sm">الأبعاد</label>
+        <select id="ratio" class="input">
+         <option value="9:16">عمودي 9:16</option>
+         <option value="16:9">أفقي 16:9</option>
+         <option value="1:1">مربع 1:1</option>
+        </select>
+       </div>
+       <div>
+        <label class="block mb-2 text-sm">المدة</label>
+        <select id="duration" class="input">
+         <option value="5">5 ثوانٍ</option>
+         <option value="10">10 ثوانٍ</option>
+         <option value="15">15 ثانية</option>
+        </select>
+       </div>
+      </div>
+      <label class="block mt-5 mb-2 text-sm font-bold">النمط</label>
+      <select id="style" class="input">
+       <option>واقعي</option>
+       <option>سينمائي</option>
+       <option>ASMR</option>
+       <option>أنمي</option>
+       <option>ثلاثي الأبعاد</option>
+      </select>
+      <button class="btn w-full mt-7" id="saveProject">حفظ مشروع الفيديو ✦</button>
+      <p class="muted text-xs mt-3 text-center">حفظ المشروع متاح الآن. توليد الفيديو يتطلب تفعيل اتصال محرك الذكاء الاصطناعي.</p>
+     </form>
+     <p id="projectMessage" class="text-sm mt-4 text-center"></p>
+    </div>
+   </section>
+
+   <section id="libraryPage" class="hidden">
+    <h1 class="text-3xl font-extrabold mb-2">مكتبتي</h1>
+    <p class="muted mb-6">مشاريع الفيديو المحفوظة في حسابك.</p>
+    <div id="videos" class="grid sm:grid-cols-2 gap-4"></div>
+   </section>
+  </main>
+ </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+/* ضع بيانات مشروعك هنا */
+const SUPABASE_URL = "YOUR_PROJECT_URL";
+const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+
+const configured =
+ !SUPABASE_URL.startsWith("YOUR_") &&
+ !SUPABASE_KEY.startsWith("YOUR_");
+
+const supabase = configured
+ ? createClient(SUPABASE_URL,SUPABASE_KEY)
+ : null;
+
+const $ = id => document.getElementById(id);
+let mode = "login";
+let user = null;
+let english = false;
+
+function message(el,text,error=false){
+ $(el).textContent=text;
+ $(el).style.color=error?"#fb7185":"#a78bfa";
+}
+
+function setMode(next){
+ mode=next;
+ $("nameWrap").classList.toggle("hidden",mode!=="signup");
+ $("loginTab").className=mode==="login"?"btn flex-1":"flex-1 rounded-xl bg-slate-800";
+ $("signupTab").className=mode==="signup"?"btn flex-1":"flex-1 rounded-xl bg-slate-800";
+ $("authSubmit").textContent=mode==="login"?"دخول إلى حسابي":"إنشاء حساب";
+ message("authMessage","");
+}
+$("loginTab").onclick=()=>setMode("login");
+$("signupTab").onclick=()=>setMode("signup");
+
+async function loadProfile(){
+ const {data,error}=await supabase.from("profiles")
+  .select("credits,plan").eq("id",user.id).single();
+ if(error){message("projectMessage","تعذر قراءة الحساب: "+error.message,true);return;}
+ $("credits").textContent=data.credits;
+}
+
+async function loadVideos(){
+ const {data,error}=await supabase.from("videos")
+  .select("*").eq("user_id",user.id)
+  .order("created_at",{ascending:false});
+ if(error){$("videos").textContent="تعذر تحميل المشاريع";return;}
+ $("videos").innerHTML="";
+ if(!data.length){
+  $("videos").textContent="لا توجد مشاريع محفوظة بعد.";
+  return;
+ }
+ for(const v of data){
+  const card=document.createElement("article");
+  card.className="glass p-4";
+  const title=document.createElement("h3");
+  title.className="font-bold mb-2";
+  title.textContent=v.model;
+  const prompt=document.createElement("p");
+  prompt.className="text-sm muted";
+  prompt.textContent=v.prompt;
+  const status=document.createElement("p");
+  status.className="text-xs text-violet-300 mt-3";
+  status.textContent="الحالة: "+v.status;
+  card.append(title,prompt,status);
+  $("videos").append(card);
+ }
+}
+
+function showApp(){
+ $("auth").classList.add("hidden");
+ $("app").classList.remove("hidden");
+ loadProfile();
+ loadVideos();
+}
+
+$("authForm").onsubmit=async e=>{
+ e.preventDefault();
+ if(!supabase){
+  message("authMessage","أضف بيانات Supabase في الكود أولاً.",true);
+  return;
+ }
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ const btn=$("authSubmit");
+ btn.disabled=true;
+ try{
+  if(mode==="signup"){
+   const {data,error}=await supabase.auth.signUp({
+    email,password,
+    options:{data:{name:$("name").value.trim()}}
+   });
+   if(error) throw error;
+   if(data.session){
+    user=data.user;showApp();
+   }else{
+    message("authMessage","تم إنشاء الحساب. تحقق من بريدك لتأكيد التسجيل.");
+   }
+  }else{
+   const {data,error}=await supabase.auth.signInWithPassword({email,password});
+   if(error) throw error;
+   user=data.user;showApp();
+  }
+ }catch(err){message("authMessage",err.message,true);}
+ finally{btn.disabled=false;}
+};
+
+$("prompt").oninput=()=>{
+ $("counter").textContent=$("prompt").value.length+" / 3000";
+};
+
+$("projectForm").onsubmit=async e=>{
+ e.preventDefault();
+ if(!user)return;
+ const btn=$("saveProject");
+ btn.disabled=true;
+ try{
+  const {error}=await supabase.from("videos").insert({
+   user_id:user.id,
+   prompt:$("prompt").value.trim(),
+   provider:"pending",
+   model:$("model").value,
+   status:"draft",
+   aspect_ratio:$("ratio").value,
+   duration:Number($("duration").value)
+  });
+  if(error)throw error;
+  message("projectMessage","تم حفظ مشروعك بنجاح ✓");
+  $("prompt").value="";
+  $("counter").textContent="0 / 3000";
+  await loadVideos();
+ }catch(err){message("projectMessage",err.message,true);}
+ finally{btn.disabled=false;}
+};
+
+document.querySelectorAll("[data-page]").forEach(btn=>{
+ btn.onclick=()=>{
+  document.querySelectorAll("[data-page]").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  $("createPage").classList.toggle("hidden",btn.dataset.page!=="create");
+  $("libraryPage").classList.toggle("hidden",btn.dataset.page!=="library");
+  if(btn.dataset.page==="library")loadVideos();
+ };
+});
+
+$("logout").onclick=async()=>{
+ await supabase.auth.signOut();
+ user=null;
+ $("app").classList.add("hidden");
+ $("auth").classList.remove("hidden");
+};
+
+$("langBtn").onclick=()=>{
+ english=!english;
+ document.documentElement.lang=english?"en":"ar";
+ document.documentElement.dir=english?"ltr":"rtl";
+ $("langBtn").textContent=english?"العربية":"English";
+ $("authSubtitle").textContent=english?"Turn your imagination into video":"حوّل خيالك إلى فيديو مذهل";
+};
+
+if(!configured){
+ message("authMessage","أدخل رابط Supabase والمفتاح العام في الكود أولاً.",true);
+}else{
+ const {data:{session}}=await supabase.auth.getSession();
+ if(session){user=session.user;showApp();}
+}
+</script>
+</body>
+</html>
